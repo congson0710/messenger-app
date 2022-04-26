@@ -1,11 +1,13 @@
 import React from "react";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-import RecentConversation from "./RecentConversation";
 import useAxios from "axios-hooks";
 import CircularProgress from "@mui/material/CircularProgress";
+
 import { BASE_URL } from "../constant";
 import { useSelectedUserContext } from "../../SelectedUserContext";
+import RecentConversation from "./RecentConversation";
+import CurrentConversation from "./CurrentConversation";
 
 const Chat = () => {
   const { selectedUser: user } = useSelectedUserContext();
@@ -24,6 +26,7 @@ const Chat = () => {
           <RecentConversation currentUser={user} data={data?.rows} />
         </Grid>
         <Grid item xs={8} />
+        <CurrentConversation currentUser={user} />
       </Grid>
     </Container>
   );

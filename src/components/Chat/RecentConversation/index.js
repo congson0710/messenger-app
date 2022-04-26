@@ -5,12 +5,20 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
-import ListNameWithAvatar from "../../ListNameWithAvatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import Paper from "@mui/material/Paper";
+import CircularProgress from "@mui/material/CircularProgress";
+
+import ListNameWithAvatar from "../../ListNameWithAvatar";
 import Header from "./Header";
+import { useScroll } from "../../hooks";
 
 const RecentConversation = ({ currentUser, data = [] }) => {
+  const { containerCallbackRef, sentryCallbackRef } = useScroll({
+    onLoadMore: () => {
+      console.log("load more");
+    },
+  });
   const [searchText, setSearchText] = React.useState("");
   const searchedData = React.useMemo(() => {
     const normalizeData = data.map((item) => {
@@ -39,8 +47,12 @@ const RecentConversation = ({ currentUser, data = [] }) => {
         overflow: "auto",
       }}
     >
-      <List sx={{ width: "100%", bgcolor: "background.paper" }}>
+      <List
+        ref={containerCallbackRef}
+        sx={{ width: "100%", bgcolor: "background.paper" }}
+      >
         <Header onSearchText={setSearchText} />
+        <CircularProgress ref={sentryCallbackRef} />
         {searchedData?.map((conversation) => {
           return (
             <ListItem key={conversation.id} disablePadding>
