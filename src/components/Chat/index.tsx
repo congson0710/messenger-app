@@ -12,7 +12,7 @@ import CurrentConversation from "./CurrentConversation";
 const Chat = () => {
   const { selectedUser: user } = useSelectedUserContext();
   const [{ data, loading: isLoading }] = useAxios({
-    url: `${BASE_URL}/api/account/${user.id}/conversations?pageSize=2`,
+    url: `${BASE_URL}/api/account/${user?.id}/conversations`,
   });
 
   if (isLoading) {
@@ -25,8 +25,9 @@ const Chat = () => {
         <Grid item xs={4}>
           <RecentConversation currentUser={user} data={data?.rows} />
         </Grid>
-        <Grid item xs={8} />
-        <CurrentConversation currentUser={user} />
+        <Grid item xs={8}>
+          <CurrentConversation currentUser={user} />
+        </Grid>
       </Grid>
     </Container>
   );

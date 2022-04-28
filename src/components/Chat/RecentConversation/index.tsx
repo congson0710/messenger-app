@@ -12,18 +12,25 @@ import CircularProgress from "@mui/material/CircularProgress";
 import ListNameWithAvatar from "../../ListNameWithAvatar";
 import Header from "./Header";
 import { useScroll } from "../../hooks";
+import { UserType, ConversationRowType } from "../../type";
 
-const RecentConversation = ({ currentUser, data = [] }) => {
+const RecentConversation = ({
+  currentUser,
+  data = [],
+}: {
+  currentUser: UserType | null;
+  data: ConversationRowType[];
+}) => {
   const { containerCallbackRef, sentryCallbackRef } = useScroll({
     onLoadMore: () => {
       console.log("load more");
     },
   });
-  const [searchText, setSearchText] = React.useState("");
+  const [searchText, setSearchText] = React.useState<string>("");
   const searchedData = React.useMemo(() => {
     const normalizeData = data.map((item) => {
       return {
-        id: item.id,
+        ...item,
         participants: item.participants.filter((p) => p.id !== currentUser?.id),
       };
     });

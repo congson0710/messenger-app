@@ -1,7 +1,16 @@
 import React from "react";
 import Avatar from "@mui/material/Avatar";
 
-function stringToColor(string) {
+type SxProps = {
+  bgcolor: string;
+};
+
+type StringColorType = {
+  children: string;
+  sx: SxProps;
+};
+
+const stringToColor = (string: string): string => {
   let hash = 0;
   let i;
 
@@ -19,9 +28,9 @@ function stringToColor(string) {
   /* eslint-enable no-bitwise */
 
   return color;
-}
+};
 
-function stringAvatar(name) {
+const stringAvatar = (name: string): StringColorType => {
   const firstCharacter = name.split(" ")?.[0]?.[0];
   const secondCharacter = name.split(" ")?.[1]?.[0];
 
@@ -31,9 +40,9 @@ function stringAvatar(name) {
     },
     children: [firstCharacter, secondCharacter].filter(Boolean).join(""),
   };
-}
+};
 
-const ListNameWithAvatar = ({ name }) => {
+const ListNameWithAvatar = ({ name = "" }: { name?: string | undefined }) => {
   return <Avatar {...stringAvatar(name)} />;
 };
 

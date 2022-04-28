@@ -50,7 +50,11 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const Header = ({ onSearchText }) => {
+const Header = ({
+  onSearchText,
+}: {
+  onSearchText: (value: string) => void;
+}) => {
   const { setSelectedUser } = useSelectedUserContext();
 
   return (

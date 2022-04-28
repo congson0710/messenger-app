@@ -12,6 +12,7 @@ import ListNameWithAvatar from "./ListNameWithAvatar";
 import { BASE_URL } from "./constant";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import { useSelectedUserContext } from "../SelectedUserContext";
+import { UserType } from "./type";
 
 const Accounts = () => {
   const { setSelectedUser } = useSelectedUserContext();
@@ -50,7 +51,7 @@ const Accounts = () => {
       </Typography>
       <Paper variant="outlined" sx={{ width: 450, pt: 1, pb: 1 }}>
         <List sx={{ width: "100%", bgcolor: "background.paper" }}>
-          {data?.map((account) => {
+          {data?.map((account: UserType) => {
             const labelId = `checkbox-list-secondary-label-${account.id}`;
             return (
               <ListItem key={account.id} disablePadding>

@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const useScroll = ({ onLoadMore }: { onLoadMore: () => void }) => {
+const useScroll = ({
+  onLoadMore,
+}: {
+  onLoadMore: () => void;
+}): {
+  containerCallbackRef: (el: HTMLElement) => void;
+  sentryCallbackRef: (el: HTMLElement) => void;
+} => {
   const containerRef = useRef<HTMLElement | null>(null);
   const sentryRef = useRef<HTMLElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
