@@ -4,7 +4,7 @@ export type UserType = {
   email: string | undefined;
 };
 
-type LastMessageType = {
+type MessageType = {
   id: string;
   createdAt: string;
   text: string;
@@ -13,7 +13,7 @@ type LastMessageType = {
 
 export type ConversationRowType = {
   id: string;
-  lastMessage: LastMessageType;
+  lastMessage: MessageType;
   participants: UserType[];
 };
 
