@@ -6,7 +6,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
-import Paper from "@mui/material/Paper";
+import Card from "@mui/material/Card";
 import CircularProgress from "@mui/material/CircularProgress";
 
 import ListNameWithAvatar from "../../ListNameWithAvatar";
@@ -17,11 +17,11 @@ import { UserType, ConversationRowType } from "../../type";
 const RecentConversation = ({
   currentUser,
   data = [],
-  setCurrentConversation,
+  setConversation,
 }: {
   currentUser: UserType | null;
   data: ConversationRowType[];
-  setCurrentConversation: (conversation: ConversationRowType | null) => void;
+  setConversation: (user: ConversationRowType | null) => void;
 }) => {
   const { containerCallbackRef, sentryCallbackRef } = useScroll({
     onLoadMore: () => {
@@ -48,7 +48,7 @@ const RecentConversation = ({
   }, [data, searchText, currentUser?.id]);
 
   return (
-    <Paper
+    <Card
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -56,16 +56,20 @@ const RecentConversation = ({
         overflow: "auto",
       }}
     >
+      <Header onSearchText={setSearchText} />
       <List
         ref={containerCallbackRef}
         sx={{ width: "100%", bgcolor: "background.paper" }}
       >
-        <Header onSearchText={setSearchText} />
         <CircularProgress ref={sentryCallbackRef} />
         {searchedData?.map((conversation) => {
           return (
-            <ListItem key={conversation.id} disablePadding>
-              <ListItemButton onClick={() => setCurrentConversation(conversation)}>
+            <ListItem
+              key={conversation.id}
+              disablePadding
+              onClick={() => setConversation(conversation)}
+            >
+              <ListItemButton>
                 <ListItemAvatar sx={{ mr: 1 }}>
                   <AvatarGroup max={2}>
                     {conversation?.participants.map((item) => {
@@ -92,7 +96,7 @@ const RecentConversation = ({
           );
         })}
       </List>
-    </Paper>
+    </Card>
   );
 };
 

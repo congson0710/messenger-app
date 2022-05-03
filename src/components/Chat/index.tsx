@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import useAxios from "axios-hooks";
@@ -10,17 +10,20 @@ import RecentConversation from "./RecentConversation";
 import CurrentConversation from "./CurrentConversation";
 import { ConversationRowType } from "../type";
 
-const Chat = ({
-  conversation,
-  setCurrentConversation,
-} : {
-  conversation: ConversationRowType | null,
-  setCurrentConversation: (conversation: ConversationRowType | null) => void,
-}) => {
+const Chat = () => {
   const { selectedUser: user } = useSelectedUserContext();
+  const [conversation, setConversation] = useState<ConversationRowType | null>(
+    null
+  );
   const [{ data, loading: isLoading }] = useAxios({
     url: `${BASE_URL}/api/account/${user?.id}/conversations`,
   });
+
+  useEffect(() => {
+    if (!isLoading && data != null && data?.rows.length > 0) {
+      setConversation(data?.rows[0]);
+    }
+  }, [setConversation, isLoading, data]);
 
   if (isLoading) {
     return <CircularProgress />;
@@ -28,16 +31,20 @@ const Chat = ({
 
   return (
     <Container>
-      <Grid container spacing={2}>
+      <Grid container spacing={1}>
         <Grid item xs={4}>
           <RecentConversation
             currentUser={user}
             data={data?.rows}
-            setCurrentConversation={setCurrentConversation}
+            setConversation={setConversation}
           />
         </Grid>
         <Grid item xs={8}>
-          <CurrentConversation currentUser={user} conversation={conversation}/>
+          <CurrentConversation
+            data={data?.rows}
+            conversation={conversation}
+            account={user}
+          />
         </Grid>
       </Grid>
     </Container>

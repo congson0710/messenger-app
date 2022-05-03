@@ -1,6 +1,6 @@
 export type UserType = {
   name: string;
-  id: number;
+  id: string;
   email: string | undefined;
 };
 
