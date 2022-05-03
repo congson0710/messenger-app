@@ -3,6 +3,7 @@
 **Principles and Design Patterns of React Programming - Batch01 - Tháng 4, 2022 - Group 9**
 - Nguyễn Quang Sang - sang.quang.nguyen@employmenthero.com
 - Son Trinh - congson0710@gmail.com
+- Tan Bui - tan.bui@employmenthero.com
 
 ## How to run app
 1. Clone this repo
@@ -13,5 +14,3 @@ yarn dev
 ```
 
 ## Demo
-
-
