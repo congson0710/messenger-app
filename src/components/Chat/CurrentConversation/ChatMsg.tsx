@@ -48,7 +48,7 @@ const ChatMsg = withStyles(defaultChatMsgStyles, { name: "ChatMsg" })(
             const TypographyProps = getTypographyProps(msg, i, props);
             return (
               // eslint-disable-next-line react/no-array-index-key
-              <div key={msg.id || i} className={classes[`${side}Row`]}>
+              <div key={msg?.id || i} className={classes[`${side}Row`]}>
                 <Typography
                   align={side}
                   {...TypographyProps}

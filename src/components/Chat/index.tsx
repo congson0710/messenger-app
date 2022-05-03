@@ -15,6 +15,10 @@ const Chat = () => {
   const [conversation, setConversation] = useState<ConversationRowType | null>(
     null
   );
+  if (user == null) {
+    return <div>Select a user</div>;
+  }
+
   const [{ data, loading: isLoading }] = useAxios({
     url: `${BASE_URL}/api/account/${user?.id}/conversations`,
   });

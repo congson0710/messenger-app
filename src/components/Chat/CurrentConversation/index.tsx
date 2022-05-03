@@ -70,8 +70,26 @@ const CurrentConversation = ({
     }/messages${prevCursor !== null ? `?cursor=${prevCursor}` : ""}`,
   });
 
-  const messagesData = normalizeData(messagesResponse);
+  const [ inputMessage, setInputMessage ] = React.useState<string>('');
+  const [
+    { data: sendMessageData, loading: isSending, error: sendError },
+    executePostMessage,
+  ] = useAxios({
+    url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
+    withCredentials: false,
+    method: "POST",
+  }, { manual: true });
 
+  const sendMessage = () => {
+    executePostMessage({
+      data: {
+        text: inputMessage,
+      },
+    });
+    setInputMessage('');
+  }
+
+  const messagesData = normalizeData(messagesResponse);
   return (
     <Card
       sx={{
@@ -101,6 +119,7 @@ const CurrentConversation = ({
                 avatar={message?.sender.name}
                 messages={message?.text}
                 side={account.id === message.sender.id ? "right" : "left"}
+                key={message.id}
               />
             );
           })}
@@ -112,6 +131,8 @@ const CurrentConversation = ({
               label="Type Something"
               fullWidth
               multiline
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
               rows={2}
             />
           </Grid>
@@ -122,7 +143,7 @@ const CurrentConversation = ({
             alignItems="center"
             justify="flex-end"
           >
-            <Fab color="primary" aria-label="add" size="small">
+            <Fab color="primary" aria-label="add" size="small" onClick={sendMessage}>
               <SendIcon />
             </Fab>
           </Grid>
