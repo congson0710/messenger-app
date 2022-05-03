@@ -1,9 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
 import cx from "clsx";
-import { Typography, Avatar, Grid } from "@mui/material";
+import { Typography, Grid } from "@mui/material";
 import withStyles from "@mui/styles/withStyles";
 import defaultChatMsgStyles from "./defaultChatMsg.styles";
+import ListNameWithAvatar from "../../ListNameWithAvatar";
 
 const ChatMsg = withStyles(defaultChatMsgStyles, { name: "ChatMsg" })(
   (props) => {
@@ -35,10 +36,10 @@ const ChatMsg = withStyles(defaultChatMsgStyles, { name: "ChatMsg" })(
       >
         {side === "left" && (
           <Grid item xs={1} {...GridItemProps}>
-            <Avatar
-              src={avatar}
-              {...AvatarProps}
+            <ListNameWithAvatar
+              name={avatar}
               className={cx(classes.avatar, AvatarProps.className)}
+              style={{ fontSize: 14 }}
             />
           </Grid>
         )}
@@ -66,10 +67,10 @@ const ChatMsg = withStyles(defaultChatMsgStyles, { name: "ChatMsg" })(
         </Grid>
         {side === "right" && (
           <Grid item xs={1} {...GridItemProps}>
-            <Avatar
-              src={avatar}
-              {...AvatarProps}
+            <ListNameWithAvatar
+              name={avatar}
               className={cx(classes.avatar, AvatarProps.className)}
+              style={{ fontSize: 14 }}
             />
           </Grid>
         )}

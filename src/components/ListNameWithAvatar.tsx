@@ -42,8 +42,16 @@ const stringAvatar = (name: string): StringColorType => {
   };
 };
 
-const ListNameWithAvatar = ({ name = "" }: { name?: string | undefined }) => {
-  return <Avatar {...stringAvatar(name)} />;
+const ListNameWithAvatar = ({
+  name = "",
+  className,
+  style,
+}: {
+  name?: string | undefined;
+  className?: string;
+  style?: React.CSSProperties;
+}) => {
+  return <Avatar {...stringAvatar(name)} className={className} style={style} />;
 };
 
 export default ListNameWithAvatar;
