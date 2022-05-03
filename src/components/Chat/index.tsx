@@ -8,8 +8,15 @@ import { BASE_URL } from "../constant";
 import { useSelectedUserContext } from "../../SelectedUserContext";
 import RecentConversation from "./RecentConversation";
 import CurrentConversation from "./CurrentConversation";
+import { ConversationRowType } from "../type";
 
-const Chat = () => {
+const Chat = ({
+  conversation,
+  setCurrentConversation,
+} : {
+  conversation: ConversationRowType | null,
+  setCurrentConversation: (conversation: ConversationRowType | null) => void,
+}) => {
   const { selectedUser: user } = useSelectedUserContext();
   const [{ data, loading: isLoading }] = useAxios({
     url: `${BASE_URL}/api/account/${user?.id}/conversations`,
@@ -23,10 +30,14 @@ const Chat = () => {
     <Container>
       <Grid container spacing={2}>
         <Grid item xs={4}>
-          <RecentConversation currentUser={user} data={data?.rows} />
+          <RecentConversation
+            currentUser={user}
+            data={data?.rows}
+            setCurrentConversation={setCurrentConversation}
+          />
         </Grid>
         <Grid item xs={8}>
-          <CurrentConversation currentUser={user} />
+          <CurrentConversation currentUser={user} conversation={conversation}/>
         </Grid>
       </Grid>
     </Container>

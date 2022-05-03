@@ -17,9 +17,11 @@ import { UserType, ConversationRowType } from "../../type";
 const RecentConversation = ({
   currentUser,
   data = [],
+  setCurrentConversation,
 }: {
   currentUser: UserType | null;
   data: ConversationRowType[];
+  setCurrentConversation: (conversation: ConversationRowType | null) => void;
 }) => {
   const { containerCallbackRef, sentryCallbackRef } = useScroll({
     onLoadMore: () => {
@@ -63,7 +65,7 @@ const RecentConversation = ({
         {searchedData?.map((conversation) => {
           return (
             <ListItem key={conversation.id} disablePadding>
-              <ListItemButton>
+              <ListItemButton onClick={() => setCurrentConversation(conversation)}>
                 <ListItemAvatar sx={{ mr: 1 }}>
                   <AvatarGroup max={2}>
                     {conversation?.participants.map((item) => {
