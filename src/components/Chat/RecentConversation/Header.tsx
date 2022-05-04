@@ -52,6 +52,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const Header = ({
   onSearchText,
+  setConversation,
 }: {
   onSearchText: (value: string) => void;
 }) => {
@@ -65,7 +66,10 @@ const Header = ({
           edge="start"
           color="inherit"
           aria-label="open drawer"
-          onClick={() => setSelectedUser(null)}
+          onClick={() => {
+            setSelectedUser(null);
+            setConversation(null);
+          }}
         >
           <ArrowBackIcon />
         </IconButton>

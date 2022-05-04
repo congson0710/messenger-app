@@ -23,11 +23,6 @@ const RecentConversation = ({
   data: ConversationRowType[];
   setConversation: (user: ConversationRowType | null) => void;
 }) => {
-  const { containerCallbackRef, sentryCallbackRef } = useScroll({
-    onLoadMore: () => {
-      console.log("load more");
-    },
-  });
   const [searchText, setSearchText] = React.useState<string>("");
   const searchedData = React.useMemo(() => {
     const normalizeData = data.map((item) => {
@@ -56,12 +51,8 @@ const RecentConversation = ({
         overflow: "auto",
       }}
     >
-      <Header onSearchText={setSearchText} />
-      <List
-        ref={containerCallbackRef}
-        sx={{ width: "100%", bgcolor: "background.paper" }}
-      >
-        <CircularProgress ref={sentryCallbackRef} />
+      <Header onSearchText={setSearchText} setConversation={setConversation} />
+      <List sx={{ width: "100%", bgcolor: "background.paper" }}>
         {searchedData?.map((conversation) => {
           return (
             <ListItem

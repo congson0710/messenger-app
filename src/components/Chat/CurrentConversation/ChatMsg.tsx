@@ -43,7 +43,14 @@ const ChatMsg = withStyles(defaultChatMsgStyles, { name: "ChatMsg" })(
             />
           </Grid>
         )}
-        <Grid item xs={11}>
+        <Grid
+          item
+          xs={11}
+          sx={{
+            display: "flex",
+            flexDirection: "column-reverse",
+          }}
+        >
           {messages.map((msg, i) => {
             const TypographyProps = getTypographyProps(msg, i, props);
             return (

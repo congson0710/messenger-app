@@ -12,37 +12,13 @@ import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Fab from "@mui/material/Fab";
 import Box from "@mui/material/Box";
+import { CircularProgress } from "@mui/material";
 
 import { ConversationRowType, UserType } from "../../type";
 import ListNameWithAvatar from "../../ListNameWithAvatar";
 import ChatMsg from "./ChatMsg";
 import { BASE_URL } from "../../constant";
-
-const normalizeData = (rawResponse) => {
-  if (rawResponse == null) {
-    return [];
-  }
-
-  const data = rawResponse?.rows.reduce((acc, curr) => {
-    const lastItem = acc.slice(-1).length > 0 ? acc.slice(-1)[0] : null;
-
-    if (lastItem?.sender.id === curr?.sender.id) {
-      const newCurr = {
-        ...curr,
-        text: [...lastItem?.text, curr.text],
-      };
-      return [...acc.slice(0, -1), newCurr];
-    } else {
-      const newCurr = {
-        ...curr,
-        text: [curr?.text],
-      };
-      return [...acc, newCurr];
-    }
-  }, []);
-
-  return data;
-};
+import { useScroll } from "../../hooks";
 
 const CurrentConversation = ({
   conversation,
@@ -64,21 +40,33 @@ const CurrentConversation = ({
 
   const [prevCursor, setPrevCursor] = React.useState<string | null>(null);
 
-  const [{ data: messagesResponse }] = useAxios({
-    url: `${BASE_URL}/api/account/${account?.id}/conversation/${
-      conversation?.id
-    }/messages${prevCursor !== null ? `?cursor=${prevCursor}` : ""}`,
-  });
+  const [{ data: messagesResponse, loading: isLoadingMsg, error: getError }] =
+    useAxios({
+      url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
+    });
 
-  const [ inputMessage, setInputMessage ] = React.useState<string>('');
+  const [{ data: loadMoreResponse, loading: isLoadingMore }, excuteLoadmore] =
+    useAxios(
+      {
+        url: `${BASE_URL}/api/account/${account?.id}/conversation/${
+          conversation?.id
+        }/messages${prevCursor !== null ? `?cursor=${prevCursor}` : ""}`,
+      },
+      { manual: true }
+    );
+
+  const [messagesData, setMessages] = React.useState([]);
+  const [inputMessage, setInputMessage] = React.useState<string>("");
   const [
     { data: sendMessageData, loading: isSending, error: sendError },
     executePostMessage,
-  ] = useAxios({
-    url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
-    withCredentials: false,
-    method: "POST",
-  }, { manual: true });
+  ] = useAxios(
+    {
+      url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
+      method: "POST",
+    },
+    { manual: true }
+  );
 
   const sendMessage = () => {
     executePostMessage({
@@ -86,10 +74,32 @@ const CurrentConversation = ({
         text: inputMessage,
       },
     });
-    setInputMessage('');
-  }
+    setInputMessage("");
+  };
 
-  const messagesData = normalizeData(messagesResponse);
+  const { containerCallbackRef, sentryCallbackRef } = useScroll({
+    onLoadMore: () => {
+      excuteLoadmore();
+    },
+  });
+
+  React.useEffect(() => {
+    if (
+      messagesResponse != null &&
+      isLoadingMsg === false &&
+      getError == null
+    ) {
+      setMessages(messagesResponse.rows);
+      setPrevCursor(messagesResponse.cursor_prev);
+    }
+  }, [messagesResponse, isLoadingMsg, getError]);
+
+  React.useEffect(() => {
+    if (sendMessageData != null && isSending === false && sendError == null) {
+      setMessages((oldMesg) => [sendMessageData, ...oldMesg]);
+    }
+  }, [sendMessageData, isSending, sendError]);
+
   return (
     <Card
       sx={{
@@ -112,17 +122,30 @@ const CurrentConversation = ({
       />
       <Divider />
       <CardContent>
-        <Box sx={{ width: "100%", height: "80vh" }}>
+        <Box
+          sx={{
+            width: "100%",
+            height: "70vh",
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column-reverse",
+            marginBottom: 2,
+          }}
+          ref={containerCallbackRef}
+        >
           {messagesData.map((message) => {
             return (
               <ChatMsg
                 avatar={message?.sender.name}
-                messages={message?.text}
+                messages={[message?.text]}
                 side={account.id === message.sender.id ? "right" : "left"}
                 key={message.id}
               />
             );
           })}
+          <Box>
+            <CircularProgress ref={sentryCallbackRef} />
+          </Box>
         </Box>
         <Grid container>
           <Grid item xs={11}>
@@ -143,7 +166,13 @@ const CurrentConversation = ({
             alignItems="center"
             justify="flex-end"
           >
-            <Fab color="primary" aria-label="add" size="small" onClick={sendMessage}>
+            <Fab
+              color="primary"
+              aria-label="add"
+              size="small"
+              onClick={sendMessage}
+              disabled={isSending}
+            >
               <SendIcon />
             </Fab>
           </Grid>
