@@ -45,15 +45,15 @@ const CurrentConversation = ({
       url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
     });
 
-  const [{ data: loadMoreResponse, loading: isLoadingMore }, excuteLoadmore] =
-    useAxios(
-      {
-        url: `${BASE_URL}/api/account/${account?.id}/conversation/${
-          conversation?.id
-        }/messages${prevCursor !== null ? `?cursor=${prevCursor}` : ""}`,
-      },
-      { manual: true }
-    );
+  const [
+    { data: loadMoreResponse, loading: isLoadingMore, error: errorLoadMore },
+    excuteLoadmore,
+  ] = useAxios(
+    {
+      url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
+    },
+    { manual: true }
+  );
 
   const [messagesData, setMessages] = React.useState([]);
   const [inputMessage, setInputMessage] = React.useState<string>("");
@@ -79,9 +79,20 @@ const CurrentConversation = ({
 
   const { containerCallbackRef, sentryCallbackRef } = useScroll({
     onLoadMore: () => {
-      excuteLoadmore();
+      if (!isLoadingMore && !isLoadingMsg && messagesResponse != null) {
+        excuteLoadmore({
+          params: {
+            cursor: prevCursor,
+          },
+        });
+      }
     },
   });
+
+  React.useEffect(() => {
+    setMessages([]);
+    setPrevCursor(null);
+  }, [conversation]);
 
   React.useEffect(() => {
     if (
@@ -93,6 +104,17 @@ const CurrentConversation = ({
       setPrevCursor(messagesResponse.cursor_prev);
     }
   }, [messagesResponse, isLoadingMsg, getError]);
+
+  React.useEffect(() => {
+    if (
+      loadMoreResponse != null &&
+      isLoadingMore === false &&
+      errorLoadMore == null
+    ) {
+      setMessages((oldMesg) => [...oldMesg, ...loadMoreResponse.rows]);
+      setPrevCursor(loadMoreResponse.cursor_prev);
+    }
+  }, [loadMoreResponse, isLoadingMore, errorLoadMore]);
 
   React.useEffect(() => {
     if (sendMessageData != null && isSending === false && sendError == null) {
@@ -143,9 +165,11 @@ const CurrentConversation = ({
               />
             );
           })}
-          <Box>
-            <CircularProgress ref={sentryCallbackRef} />
-          </Box>
+          {prevCursor != null && (
+            <Box>
+              <CircularProgress ref={sentryCallbackRef} />
+            </Box>
+          )}
         </Box>
         <Grid container>
           <Grid item xs={11}>
