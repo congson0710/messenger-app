@@ -8,7 +8,12 @@ import CardContent from "@mui/material/CardContent";
 import useAxios from "axios-hooks";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
-import { keys, get, flatMap } from "lodash";
+import uniqBy from "lodash/fp/uniqBy";
+import keys from "lodash/fp/keys";
+import flatMap from "lodash/fp/flatMap";
+import get from "lodash/fp/get";
+import flow from "lodash/fp/flow";
+import reverse from "lodash/fp/reverse";
 
 import ChatMsg from "./ChatMsg";
 import MessageInput from "../MessageInput";
@@ -16,7 +21,6 @@ import ListNameWithAvatar from "../../common/components/ListNameWithAvatar";
 import { BASE_URL } from "../../common/constants";
 import { useScroll, useFetch } from "../../hooks";
 import { Conversation, Messages, Message, User } from "../../common/types";
-import { FetchMessagesBody } from "./types";
 
 const PAGE_SIZE = 20;
 
@@ -53,14 +57,6 @@ const CurrentConversation: React.FC<CurrentConversationProps> = ({
     endpoint: `${BASE_URL}/api/account/${currentUser.id}/conversation/${data.id}/messages`,
     method: "GET",
   });
-  // const {
-  //   fetcher: postMessage,
-  //   data: postMessageData,
-  //   isLoading,
-  // } = useFetch({
-  //   endpoint: `${BASE_URL}/api/account/${currentUser.id}/conversation/${data.id}/messages`,
-  //   method: "POST",
-  // });
   const ableToLoadMore = React.useMemo(() => {
     if (messagesData == null) return false;
 
@@ -91,11 +87,10 @@ const CurrentConversation: React.FC<CurrentConversationProps> = ({
 
   const messages = React.useMemo(() => {
     const sorted = paginatedMessagesData.map((item) =>
-      item.sort === "OLDEST_FIRST"
-        ? { ...item, rows: [...item.rows].reverse() }
-        : item
+      item.sort === "OLDEST_FIRST" ? { ...item, rows: [...item.rows] } : item
     );
-    return flatMap(sorted, "rows");
+
+    return flow(flatMap("rows"), uniqBy("id"))(sorted);
   }, [paginatedMessagesData]);
 
   React.useEffect(() => {
@@ -177,6 +172,18 @@ const CurrentConversation: React.FC<CurrentConversationProps> = ({
             </>
           )}
         </Box>
+        <MessageInput
+          user={currentUser}
+          conversation={data}
+          onComplete={() => {
+            fetchMessages({
+              params: {
+                pageSize: PAGE_SIZE,
+              },
+              withPagination: true,
+            });
+          }}
+        />
       </CardContent>
     </Card>
   );
