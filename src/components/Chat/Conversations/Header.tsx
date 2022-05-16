@@ -55,6 +55,7 @@ const Header = ({
   setConversation,
 }: {
   onSearchText: (value: string) => void;
+  setConversation: any;
 }) => {
   const { setSelectedUser } = useSelectedUserContext();
 

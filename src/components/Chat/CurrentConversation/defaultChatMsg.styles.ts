@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+
 export default () => {
   const theme = createTheme({ palette: { mode: "light" } });
   const radius = theme.spacing(2.5);

@@ -5,8 +5,8 @@ const useScroll = ({
 }: {
   onLoadMore: () => void;
 }): {
-  containerCallbackRef: (el: HTMLElement) => void;
-  sentryCallbackRef: (el: HTMLElement) => void;
+  containerCallbackRef: (el: HTMLElement | null) => void;
+  sentryCallbackRef: (el: HTMLElement | null) => void;
 } => {
   const containerRef = useRef<HTMLElement | null>(null);
   const sentryRef = useRef<HTMLElement | null>(null);
@@ -28,7 +28,7 @@ const useScroll = ({
     }
     observerRef.current = null;
     setVisible(false);
-  }, [observerRef.current]);
+  }, []);
 
   // initialize new observer & observe the sentry el
   const observe = useCallback(() => {
@@ -51,11 +51,11 @@ const useScroll = ({
 
       observer.observe(sentryRef.current);
     }
-  }, [containerRef.current]);
+  }, []);
 
   // callback refs
   const containerCallbackRef = useCallback(
-    (el: HTMLElement) => {
+    (el: HTMLElement | null) => {
       containerRef.current = el;
       unobserve();
       observe();
@@ -64,7 +64,7 @@ const useScroll = ({
   );
 
   const sentryCallbackRef = useCallback(
-    (el: HTMLElement) => {
+    (el: HTMLElement | null) => {
       sentryRef.current = el;
       unobserve();
       observe();

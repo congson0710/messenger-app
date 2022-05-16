@@ -2,145 +2,130 @@ import React from "react";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import Avatar from "@mui/material/Avatar";
-import { red } from "@mui/material/colors";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import Divider from "@mui/material/Divider";
 import CardContent from "@mui/material/CardContent";
 import useAxios from "axios-hooks";
-import SendIcon from "@mui/icons-material/Send";
-import Grid from "@mui/material/Grid";
-import TextField from "@mui/material/TextField";
-import Fab from "@mui/material/Fab";
 import Box from "@mui/material/Box";
-import { CircularProgress } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
+import { keys, get, flatMap } from "lodash";
 
-import { ConversationRowType, UserType } from "../../type";
-import ListNameWithAvatar from "../../ListNameWithAvatar";
 import ChatMsg from "./ChatMsg";
-import { BASE_URL } from "../../constant";
-import { useScroll } from "../../hooks";
+import MessageInput from "../MessageInput";
+import ListNameWithAvatar from "../../common/components/ListNameWithAvatar";
+import { BASE_URL } from "../../common/constants";
+import { useScroll, useFetch } from "../../hooks";
+import { Conversation, Messages, Message, User } from "../../common/types";
+import { FetchMessagesBody } from "./types";
 
-const CurrentConversation = ({
-  conversation,
-  data,
-  account,
-}: {
-  conversation: ConversationRowType | null;
-  data: ConversationRowType[];
-  account: UserType | null;
-}) => {
-  const participants =
-    data.find((p: ConversationRowType) => p.id === conversation?.id)
-      ?.participants ?? [];
+const PAGE_SIZE = 20;
 
-  const cardTitle = participants
-    .map((p: UserType) => p.name)
+interface CurrentConversationProps {
+  data: Conversation | null;
+  currentUser: User;
+}
+
+const getTitle = (participants: User[]) =>
+  participants
+    .map((item: User) => item.name)
     .filter(Boolean)
     .join(", ");
 
-  const [prevCursor, setPrevCursor] = React.useState<string | null>(null);
+const CurrentConversation: React.FC<CurrentConversationProps> = ({
+  data,
+  currentUser,
+}) => {
+  if (data == null) {
+    return null;
+  }
 
-  const [{ data: messagesResponse, loading: isLoadingMsg, error: getError }] =
-    useAxios({
-      url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
-    });
+  const { participants } = data;
+  const title = React.useMemo(() => getTitle(participants), [participants]);
 
-  const [
-    { data: loadMoreResponse, loading: isLoadingMore, error: errorLoadMore },
-    excuteLoadmore,
-  ] = useAxios(
-    {
-      url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
-    },
-    { manual: true }
-  );
+  // API calls
+  const {
+    fetcher: fetchMessages,
+    resetter: resetMessagesData,
+    data: messagesData,
+    paginatedData: paginatedMessagesData,
+    isLoading: isFetchingMessages,
+  } = useFetch<Messages>({
+    endpoint: `${BASE_URL}/api/account/${currentUser.id}/conversation/${data.id}/messages`,
+    method: "GET",
+  });
+  // const {
+  //   fetcher: postMessage,
+  //   data: postMessageData,
+  //   isLoading,
+  // } = useFetch({
+  //   endpoint: `${BASE_URL}/api/account/${currentUser.id}/conversation/${data.id}/messages`,
+  //   method: "POST",
+  // });
+  const ableToLoadMore = React.useMemo(() => {
+    if (messagesData == null) return false;
 
-  const [messagesData, setMessages] = React.useState([]);
-  const [inputMessage, setInputMessage] = React.useState<string>("");
-  const [
-    { data: sendMessageData, loading: isSending, error: sendError },
-    executePostMessage,
-  ] = useAxios(
-    {
-      url: `${BASE_URL}/api/account/${account?.id}/conversation/${conversation?.id}/messages`,
-      method: "POST",
-    },
-    { manual: true }
-  );
+    const { cursor_prev, rows } = messagesData;
+    return !isFetchingMessages && cursor_prev != null && rows.length > 0;
+  }, [messagesData, isFetchingMessages]);
 
-  const sendMessage = () => {
-    executePostMessage({
-      data: {
-        text: inputMessage,
-      },
-    });
-    setInputMessage("");
-  };
+  // calculate load more
+  const onLoadMore = React.useCallback(() => {
+    if (messagesData == null) return;
 
+    const { sort, cursor_prev, cursor_next } = messagesData;
+    if (ableToLoadMore) {
+      fetchMessages({
+        params: {
+          pageSize: PAGE_SIZE,
+          cursor: sort === "OLDEST_FIRST" ? cursor_next : cursor_prev,
+        },
+        withPagination: true,
+      });
+    }
+  }, [messagesData, isFetchingMessages, ableToLoadMore]);
+
+  // handle scrolling
   const { containerCallbackRef, sentryCallbackRef } = useScroll({
-    onLoadMore: () => {
-      if (!isLoadingMore && !isLoadingMsg && messagesResponse != null) {
-        excuteLoadmore({
-          params: {
-            cursor: prevCursor,
-          },
-        });
-      }
-    },
+    onLoadMore,
   });
 
-  React.useEffect(() => {
-    setMessages([]);
-    setPrevCursor(null);
-  }, [conversation]);
+  const messages = React.useMemo(() => {
+    const sorted = paginatedMessagesData.map((item) =>
+      item.sort === "OLDEST_FIRST"
+        ? { ...item, rows: [...item.rows].reverse() }
+        : item
+    );
+    return flatMap(sorted, "rows");
+  }, [paginatedMessagesData]);
 
   React.useEffect(() => {
-    if (
-      messagesResponse != null &&
-      isLoadingMsg === false &&
-      getError == null
-    ) {
-      setMessages(messagesResponse.rows);
-      setPrevCursor(messagesResponse.cursor_prev);
-    }
-  }, [messagesResponse, isLoadingMsg, getError]);
+    fetchMessages({
+      params: {
+        pageSize: PAGE_SIZE,
+      },
+      withPagination: true,
+    });
 
-  React.useEffect(() => {
-    if (
-      loadMoreResponse != null &&
-      isLoadingMore === false &&
-      errorLoadMore == null
-    ) {
-      setMessages((oldMesg) => [...oldMesg, ...loadMoreResponse.rows]);
-      setPrevCursor(loadMoreResponse.cursor_prev);
-    }
-  }, [loadMoreResponse, isLoadingMore, errorLoadMore]);
-
-  React.useEffect(() => {
-    if (sendMessageData != null && isSending === false && sendError == null) {
-      setMessages((oldMesg) => [sendMessageData, ...oldMesg]);
-    }
-  }, [sendMessageData, isSending, sendError]);
+    return () => resetMessagesData();
+  }, [data]);
 
   return (
     <Card
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
-        overflow: "auto",
       }}
     >
       <CardHeader
         sx={{ textAlign: "left" }}
         avatar={
           <AvatarGroup max={2}>
-            {participants.map((item) => {
+            {participants.map((item: User) => {
               return <ListNameWithAvatar key={item.id} name={item?.name} />;
             })}
           </AvatarGroup>
         }
-        title={`conversation between ${cardTitle}`}
+        title={`conversation between ${title}`}
       />
       <Divider />
       <CardContent>
@@ -148,59 +133,50 @@ const CurrentConversation = ({
           sx={{
             width: "100%",
             height: "70vh",
-            overflowY: "auto",
+            overflow: "auto",
             display: "flex",
             flexDirection: "column-reverse",
-            marginBottom: 2,
           }}
           ref={containerCallbackRef}
         >
-          {messagesData.map((message) => {
-            return (
-              <ChatMsg
-                avatar={message?.sender.name}
-                messages={[message?.text]}
-                side={account.id === message.sender.id ? "right" : "left"}
-                key={message.id}
-              />
-            );
-          })}
-          {prevCursor != null && (
-            <Box>
+          {paginatedMessagesData != null &&
+          paginatedMessagesData.length === 0 &&
+          isFetchingMessages ? (
+            <Box
+              sx={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <CircularProgress ref={sentryCallbackRef} />
             </Box>
+          ) : (
+            <>
+              {messages.map((message: Message) => (
+                <ChatMsg
+                  key={message.id}
+                  avatar={message.sender.name}
+                  messages={[message.text]}
+                  side={currentUser.id === message.sender.id ? "right" : "left"}
+                />
+              ))}
+              {ableToLoadMore && (
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <CircularProgress ref={sentryCallbackRef} />
+                </Box>
+              )}
+            </>
           )}
         </Box>
-        <Grid container>
-          <Grid item xs={11}>
-            <TextField
-              id="outlined-basic-email"
-              label="Type Something"
-              fullWidth
-              multiline
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              rows={2}
-            />
-          </Grid>
-          <Grid
-            item
-            xs={1}
-            direction="row"
-            alignItems="center"
-            justify="flex-end"
-          >
-            <Fab
-              color="primary"
-              aria-label="add"
-              size="small"
-              onClick={sendMessage}
-              disabled={isSending}
-            >
-              <SendIcon />
-            </Fab>
-          </Grid>
-        </Grid>
       </CardContent>
     </Card>
   );

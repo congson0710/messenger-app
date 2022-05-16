@@ -4,17 +4,16 @@ import Grid from "@mui/material/Grid";
 import useAxios from "axios-hooks";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import { BASE_URL } from "../constant";
 import { useSelectedUserContext } from "../../SelectedUserContext";
-import RecentConversation from "./RecentConversation";
+import Conversations from "./Conversations";
 import CurrentConversation from "./CurrentConversation";
-import { ConversationRowType } from "../type";
+import { BASE_URL } from "../common/constants";
+import { Conversation } from "../common/types";
 
 const Chat = () => {
   const { selectedUser: user } = useSelectedUserContext();
-  const [conversation, setConversation] = useState<ConversationRowType | null>(
-    null
-  );
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+
   if (user == null) {
     return <div>Select a user</div>;
   }
@@ -27,28 +26,43 @@ const Chat = () => {
     if (!isLoading && data != null && data?.rows.length > 0) {
       setConversation(data?.rows[0]);
     }
-  }, [setConversation, isLoading, data]);
+  }, [isLoading]);
 
   if (isLoading) {
-    return <CircularProgress />;
+    return (
+      <Container
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Container>
+    );
   }
 
   return (
-    <Container>
+    <Container
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+      }}
+    >
       <Grid container spacing={1}>
         <Grid item xs={4}>
-          <RecentConversation
-            currentUser={user}
+          <Conversations
             data={data?.rows}
+            currentUser={user}
             setConversation={setConversation}
           />
         </Grid>
         <Grid item xs={8}>
-          <CurrentConversation
-            data={data?.rows}
-            conversation={conversation}
-            account={user}
-          />
+          <CurrentConversation data={conversation} currentUser={user} />
         </Grid>
       </Grid>
     </Container>
